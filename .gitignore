@@ -1,3 +1,4 @@
 *.png
 .vscode/*
 */*.m
+chapter*/CH*online/
