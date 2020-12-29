@@ -2,3 +2,5 @@
 .vscode/*
 */*.m
 chapter*/CH*online/
+.idea/
+*/__pycache__/
