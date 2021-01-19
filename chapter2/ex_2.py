@@ -1,7 +1,7 @@
 from numpy import zeros, arange, meshgrid, mean, min, max
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-from chapter2.gibbsfree import Gibbs_m
+from gibbsfree import Gibbs_m
 
 
 ## Exercise 2.2 (2.1 is analytical)
