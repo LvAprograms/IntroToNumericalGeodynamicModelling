@@ -17,76 +17,81 @@ nT = len(T)-1
 nP = len(P) - 1
 m = 0.0403044 # molar mass of MgO, kg/mol
 
-# R = 8.314 # gas constant, j/mol
-# Pr = 1e5 # reference pressure, 1 bar
-# Tr = 298.15 # reference plot_surfaceace temperature, K
-# #
-# # empirical parameters
-# Hr      = -6.015e5    # J empirical constant
-# Vr      = 1.12228e-5  # J/Pa
-# phi     = 3.01795e10 # Pa
-# c1      = 1.96612
-# c2      = 4.12756
-# c3      = 0.53690
-# deltaH1 = 2966.88 # J
-# deltaH2 = 56212.69 # J
-# deltaH3 = 27787.19 # J
-# deltaV1 = deltaV2 = 3.52971e-8 # J/Pa
-# deltaV3 = 1.9849568e-6 # J/Pa
-
 
 def V(press, temp):
-    return (Gibbs_m(press + dP, temp) - Gibbs_m(press, temp)) / dP
+    a = Gibbs_m(press + dP, temp)
+    b = Gibbs_m(press, temp)
+    return (a - b) / dP
 
 def rho(press, temp):
     return m / V(press, temp)
 
 def alpha(press, temp):
-    return (-1/rho(press, temp)) * (rho(press, temp + dT) - rho(press, temp)) / dT
+    return (-1/rho(press,temp)) * ((rho(press, temp + dT) - rho(press, temp)) / dT)
 
 def beta(press, temp):
-    return 1/rho(press,temp) * (rho(press + dP, temp) - rho(press, temp)) / dP
+    return 1/rho(press,temp) * ((rho(press + dP, temp) - rho(press, temp)) / dP)
 
 
 
 # visualise
-fig, axes = plt.subplots(3,3, figsize=(20,12))
-volume = density = expansivity = compressibility = zeros((nT, nP))
+fig = plt.figure()
+volume = zeros((nT, nP))
+density = zeros((nT, nP))
+expansivity = zeros((nT, nP))
+compressibility = zeros((nT, nP))
 for i in range(nT):
     for j in range(nP):
         volume[i,j] = V(press=P[j], temp=T[i])
-        density[i,j] = rho(press=P[j], temp=T[i])
+        density[i,j] = m / volume[i,j]
         expansivity[i,j] = alpha(press=P[j], temp=T[i])
         compressibility[i,j] = beta(press=P[j], temp=T[i])
-    print(T[i]) if i % 10 == 0 else None
+    print([mean(volume), mean(density), mean(expansivity), mean(compressibility)]) if i % 10 == 0 else None
 
 PP, TT = meshgrid(P[0:-1]/1e9, T[0:-1])
-
+axlist = []
 # pcolormeshes
 for i in range(3):
     if i == 0:
-        pc = axes[i][0].pcolormesh(TT, PP, density)
-        fig.colorbar(pc, ax=axes[i][0])
-        cf = axes[i][1].contourf(TT, PP, density)
+        ax = fig.add_subplot(3,3,i*3+1)
+        axlist.append(ax)
+        pc = ax.pcolormesh(TT, PP, density, cmap='hot')
+        fig.colorbar(pc, ax=ax)
+        ax = fig.add_subplot(3,3,i*3+2)
+        axlist.append(ax)
+        cf = ax.contourf(TT, PP, density, cmap='hot')
         ax = fig.add_subplot(3,3,i*3+3, projection='3d')
-        s = ax.plot_surface(TT, PP, density)
+        axlist.append(ax)
+        s = ax.plot_surface(TT, PP, density, cmap='hot')
     if i == 1:
-        pc = axes[i][0].pcolormesh(TT, PP, expansivity)
-        fig.colorbar(pc, ax=axes[i][0])
-        cf = axes[i][1].contourf(TT, PP, expansivity)
-        ax = fig.add_subplot(3,3,i*3+3, projection='3d')
-
-        s = ax.plot_surface(TT, PP, expansivity)
+        ax = fig.add_subplot(3, 3, i * 3 + 1)
+        pc = ax.pcolormesh(TT, PP, expansivity, cmap='hot')
+        fig.colorbar(pc, ax=ax)
+        axlist.append(ax)
+        ax = fig.add_subplot(3, 3, i * 3 + 2)
+        axlist.append(ax)
+        cf = ax.contourf(TT, PP, expansivity, cmap='hot')
+        ax = fig.add_subplot(3, 3, i * 3 + 3, projection='3d')
+        axlist.append(ax)
+        s = ax.plot_surface(TT, PP, expansivity, cmap='hot')
     if i == 2:
-        pc = axes[i][0].pcolormesh(TT, PP, compressibility)
-        fig.colorbar(pc, ax=axes[i][0])
-        cf = axes[i][1].contourf(TT, PP, compressibility)
-        ax = fig.add_subplot(3,3,i*3+3, projection='3d')
+        ax = fig.add_subplot(3, 3, i * 3 + 1)
+        axlist.append(ax)
+        pc = ax.pcolormesh(TT, PP, compressibility, cmap='hot')
+        fig.colorbar(pc, ax=ax)
+        ax = fig.add_subplot(3, 3, i * 3 + 2)
+        axlist.append(ax)
+        cf = ax.contourf(TT, PP, compressibility, cmap='hot')
+        ax = fig.add_subplot(3, 3, i * 3 + 3, projection='3d')
+        axlist.append(ax)
+        s = ax.plot_surface(TT, PP, compressibility, cmap='hot')
 
-        s = ax.plot_surface(TT, PP, compressibility)
-        axes[i][0].set_xlabel("Temperature [K]")
-        axes[i][0].set_ylabel("Pressure [GPa]")
     plt.pause(0.001)
-
-
+titles = [r'$\rho$', r'$\alpha$', r'$\beta$']
+plottype = [' pcolor', ' contourf', ' surf']
+for i in range(3):
+    for j in range(3):
+        axlist[i * 3 + j].set_xlabel("Temperature [K]")
+        axlist[i * 3 + j].set_ylabel("Pressure [GPa]")
+        axlist[i * 3 + j].set_title(titles[i] + plottype[j])
 plt.show()

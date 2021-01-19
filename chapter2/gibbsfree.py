@@ -24,11 +24,11 @@ def Gibbs_m(P, T):
     dH = [deltaH1, deltaH2, deltaH3]
     dV = [deltaV1, deltaV2, deltaV3]
 
-    Psi = 0
+    Psi = (5 / 4) * ((Pr + phi) ** (1 / 5)) * ((P + phi) ** (4 / 5) - (Pr + phi) ** (4 / 5))
     sumpart = 0
     for i in range(3):
-        Psi = (5/4) * (Pr + phi) **(1/5) * ((P + phi)**(4/5) - (Pr + phi)**(4/5))
-        e = exp(-((dH[i] + dV[i] * Psi))/(R * T)) 
+        e = exp(-((dH[i] + dV[i] * Psi))/(R * T))
         eo = exp(-dH[i] / (R * Tr))
-        sumpart += c[i] * (R * T * log(1 - e) - (dH[i] * eo / (1 - eo)))
-    return Hr + Vr * Psi + sumpart
+        sumpart += c[i] * (R * T * log(1 - e) - (dH[i] * eo) / (1 - eo))
+    result = Hr + Vr * Psi + sumpart
+    return result
