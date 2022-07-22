@@ -1,8 +1,9 @@
 from matplotlib import pyplot as plt
-from math import sqrt
-from numpy import zeros, array, meshgrid, linspace, sin, cos, pi
+from math import sqrt, log10
+from numpy import zeros, array, meshgrid, linspace, sin, cos, pi, reshape
 # from chapter1.ex1 import make_grid, calculate_properties
 
+# FUNCTION DEFINITIONS -----------------------------------------------------------------------
 # redefined from ex 1.1 because of VScode :( 
 def make_grid(nx=31, ny=31, width=1e6, height=15e6):
     x = linspace(0, width, num=nx)
@@ -24,39 +25,41 @@ def calc_dev_strainrates(vx, vy, x, y, dvxdx, dvydy, dvxdy, dvydx):
     exy = 0.5 * (dvxdy + dvydx) - 0.5 * trace
     exx = dvxdx - 0.5 * trace
     eyy = dvydy - 0.5 * trace
-    eii = sqrt(0.5 * (exx ** 2 + eyy ** 2) + exy ** 2)
-    return exx, eyy, exy, eii
+    eii = []
+    for i in range(nx):
+        for j in range(ny):
+            eii.append(sqrt(0.5 * (exx[i][j] ** 2 + eyy[i][j] ** 2) + exy[i][j] ** 2))
+    return exx, eyy, exy, reshape(array(eii), (nx, ny))
 
-    
-W = 1E6    # width of box in m
-H = 1.5E7  # height of box in m
-nx = 31    # nodes in x direction
-ny = 31    # nodes in y direction
-x,y = make_grid(nx, ny, W, H)
-xx, yy = meshgrid(x, y)
+if __name__ == "__main__":
+    # Model variable definitions -------------------------------------------------------------
+    W = 1E6    # width of box in m
+    H = 1.5E7  # height of box in m
+    nx = 31    # nodes in x direction
+    ny = 31    # nodes in y direction
+    x,y = make_grid(nx, ny, W, H)
+    xx, yy = meshgrid(x, y)
 
-vx0 = 1e-9 * W/2/H # scaling factor for horizonta velocity, m/s
-vy0 = 1e-9         # scaling factor for vertical velocity, m/s
+    vx0 = 1e-9 * W/2/H # scaling factor for horizonta velocity, m/s
+    vy0 = 1e-9         # scaling factor for vertical velocity, m/s
 
-# calculate vx, vy, dvx/dx, dvy/dy, div(v) on the grid
-vx, vy, dvxdx, dvydy, div_v, dvxdy, dvydx = calculate_properties(vx0, vy0, xx, yy, W, H)
-exx, eyy, exy, eii = calc_dev_strainrates(vx, vy, x, y, dvxdx, dvydy, dvxdy, dvydx)
-
-
+    # Calculating the needed variables -------------------------------------------------
+    vx, vy, dvxdx, dvydy, div_v, dvxdy, dvydx = calculate_properties(vx0, vy0, xx, yy, W, H)
+    exx, eyy, exy, eii = calc_dev_strainrates(vx, vy, x, y, dvxdx, dvydy, dvxdy, dvydx)
 
 
-# plot properties
-fig, axes = plt.subplots(2, 3, figsize=(20,10))
-plt.set_cmap('hot')
-properties = [vx, vy, dvxdx, dvydy, div_v, eii]
-labels = ["Vx", "Vy", "dVx/dx", "dVy/dy", "div(v)", "arrows?"]
-for i, p in enumerate(properties):
-    ax = axes.flatten()[i]
-    pc = ax.pcolormesh(xx, yy, p, shading='interp' )
-    ax.quiver(xx,yy, -vx, -vy) # overlay everything with velocity arrows
-    ax.set_xlabel("x [m]")
-    ax.set_ylabel("y [m'")
-    ax.set_title(labels[i])
-    fig.colorbar(pc, ax=ax)
+    # Plot the variables with LaTeX formattied labels--------------------------------------------------------------------------
+    fig, axes = plt.subplots(2, 3, figsize=(20,10))
+    plt.set_cmap('hot')
+    properties = [vx, vy, exx, eyy, exy, eii]
+    labels = ["Vx", "Vy", r'$\dot{\epsilon^{\prime}}_{xx}$',  r'$\dot{\epsilon^{\prime}}_{yy}$', r'$\dot{\epsilon^{\prime}}_{xy}$', r'$\dot{\epsilon\prime}_{II}$']
+    for i, p in enumerate(properties):
+        ax = axes.flatten()[i]
+        pc = ax.pcolormesh(xx, yy, p, shading='auto' )
+        ax.quiver(xx,yy, -vx, -vy) # overlay everything with velocity arrows
+        ax.set_xlabel("x [m]")
+        ax.set_ylabel("y [m'")
+        ax.set_title(labels[i])
+        fig.colorbar(pc, ax=ax)
 
-plt.show()
+    plt.savefig("chapter4/ex4_2.png")
