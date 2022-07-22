@@ -1,5 +1,6 @@
 from numpy import log, exp
 
+
 def Gibbs_m(P, T):
     """
     Returns gibbs free energy as a function of temperature and pressure
@@ -9,12 +10,12 @@ def Gibbs_m(P, T):
     Tr = 298.15 # reference surface temperature, K
 
     # empirical parameters
-    Hr      = -6.015e5    # J empirical constant
-    Vr      = 1.12228e-5  # J/Pa
-    phi     = 3.01795e10 # Pa
-    c1      = 1.96612 
-    c2      = 4.12756
-    c3      = 0.53690
+    Hr = -6.015e5    # J empirical constant
+    Vr = 1.12228e-5  # J/Pa
+    phi = 3.01795e10 # Pa
+    c1 = 1.96612
+    c2 = 4.12756
+    c3 = 0.53690
     deltaH1 = 2966.88 # J
     deltaH2 = 5621.69 # J
     deltaH3 = 27787.19 # J

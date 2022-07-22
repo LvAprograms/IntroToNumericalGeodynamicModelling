@@ -1,4 +1,4 @@
-from numpy import zeros, arange, meshgrid, mean, min, max
+from numpy import zeros, arange, meshgrid, mean, reshape, array
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from chapter2.gibbsfree import Gibbs_m
@@ -23,15 +23,17 @@ def V(press, temp):
     b = Gibbs_m(press, temp)
     return (a - b) / dP
 
+
 def rho(press, temp):
     return m / V(press, temp)
+
 
 def alpha(press, temp):
     return (-1/rho(press,temp)) * ((rho(press, temp + dT) - rho(press, temp)) / dT)
 
+
 def beta(press, temp):
     return 1/rho(press,temp) * ((rho(press + dP, temp) - rho(press, temp)) / dP)
-
 
 
 # visualise
@@ -95,3 +97,62 @@ for i in range(3):
         axlist[i * 3 + j].set_ylabel("Pressure [GPa]")
         axlist[i * 3 + j].set_title(titles[i] + plottype[j])
 plt.show()
+
+## Exercise 2.3
+# load from files
+nx = 0
+ny = 0
+T0 = 0
+P0 = 0
+T_step = 0
+P_step = 0
+rho_pyrolite = []
+with open('m895_ro', 'r') as f:
+    for i, line in enumerate(f.readlines()):
+        if i > 0:
+            l = line.strip('\n').split()
+            if i == 1:
+                nx = int(l[0])
+                ny = int(l[1])
+                T0 = float(l[2])
+                P0 = float(l[3])
+                T_step = float(l[4])
+                P_step = float(l[5])
+            elif i > 2:
+                rho_pyrolite.append(float(l[0]))
+
+rho_pyrolite = reshape(array(rho_pyrolite), (nx, ny))
+T = [T0 + (T_step * i) for i in range(nx)]
+P = [P0 + (P_step * i) for i in range(ny)]
+TT, PP = meshgrid(T, P)
+
+rho_morb = []
+with open('morn_ro', 'r') as f:
+    for i, line in enumerate(f.readlines()):
+        if i > 0:
+            l = line.strip('\n').split()
+            if i == 1:
+                nx = int(l[0])
+                ny = int(l[1])
+                T0 = float(l[2])
+                P0 = float(l[3])
+                T_step = float(l[4])
+                P_step = float(l[5])
+            elif i > 2:
+                rho_morb.append(float(l[0]))
+
+rho_morb = reshape(array(rho_morb), (nx, ny))
+## visualizing
+fig1, [ax1, ax2, ax3] = plt.subplots(1, 3, figsize=(24, 8))
+pc1 = ax1.pcolormesh(TT, PP, rho_pyrolite, cmap='hot')
+fig1.colorbar(pc1, ax=ax1)
+pc2 = ax2.pcolormesh(TT, PP, rho_morb, cmap='hot')
+fig1.colorbar(pc2, ax=ax2)
+pc3 = ax3.pcolormesh(TT, PP, rho_pyrolite - rho_morb, cmap='hot')
+fig1.colorbar(pc3, ax=ax3)
+
+
+plt.show()
+
+
+
