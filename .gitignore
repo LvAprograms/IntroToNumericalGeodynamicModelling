@@ -5,3 +5,4 @@ chapter*/CH*online/
 .idea/
 */__pycache__/
 *online/
+*.t3c
